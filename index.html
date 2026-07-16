@@ -14,7 +14,7 @@
     --fondo:#f6f2e8; --superficie:#fff; --borde:#e2e2dd;
     --texto:#22221f; --suave:#6b6b64;
     --ok:#0f6e56; --ok-fondo:#e1f5ee;
-    --crisis:#a32d2d; --crisis-fondo:#fcebeb; --crisis-borde:#f09595;
+    --crisis:#a32d2d; --crisis-borde:#f09595;
     --radio:14px;
   }
   @media (prefers-color-scheme:dark){
@@ -22,7 +22,7 @@
       --fondo:#17171a; --superficie:#202024; --borde:#34343a;
       --texto:#ececec; --suave:#a0a0a0;
       --ok:#5dcaa5; --ok-fondo:#123a30;
-      --crisis:#f09595; --crisis-fondo:#3a1c1c; --crisis-borde:#7a3b3b;
+      --crisis:#f09595; --crisis-borde:#7a3b3b;
     }
   }
   *{box-sizing:border-box}
@@ -51,7 +51,6 @@
   .apoyo p{margin:0; font-size:14px; color:var(--suave); line-height:1.55}
   .apoyo strong{color:var(--texto)}
   .aviso{margin:10px 0 0 !important; font-size:14px; color:var(--texto); line-height:1.55}
-  /* 112: discreto, al pie, y solo para lo que es. */
   .peligro{margin:12px 0 0 !important; padding-top:12px; border-top:1px solid var(--borde);
     font-size:13px !important; line-height:1.5}
   .peligro a{color:var(--crisis); font-weight:600; text-decoration:none;
@@ -64,9 +63,41 @@
   .tarjeta.atenuada{opacity:.65}
   .tarjeta b{font-size:15px; font-weight:500}
   .tarjeta em{font-size:13px; color:var(--suave); font-style:normal}
-  .rejilla{display:flex; gap:8px}
-  .rejilla .tarjeta{padding:14px}
-  .ok{color:var(--ok)}
+
+  /* Navegación */
+  .volver{align-self:flex-start; background:none; border:none; padding:6px 0;
+    font:inherit; font-size:14px; color:var(--suave); cursor:pointer}
+  h1.titulo{margin:0; font-size:20px; font-weight:500}
+  p.entradilla{margin:0; font-size:14px; color:var(--suave); line-height:1.55}
+
+  /* Ejercicio */
+  .ejercicio{background:var(--superficie); border:1px solid var(--borde);
+    border-radius:var(--radio); padding:20px; text-align:center}
+  .reloj{font-size:42px; font-variant-numeric:tabular-nums; font-weight:300; margin:4px 0}
+  .guia{min-height:3.2em; font-size:15px; color:var(--suave); line-height:1.6; margin:0}
+  .pasos{margin:0; padding-left:20px; text-align:left; font-size:14px; line-height:1.7}
+  .pasos li{margin-bottom:6px}
+  .nota{font-size:12px; color:var(--suave); line-height:1.5; margin:14px 0 0;
+    padding-top:12px; border-top:1px solid var(--borde); text-align:left}
+  .ficha{font-size:12px; color:var(--suave); margin:0}
+
+  .boton{width:100%; background:var(--texto); color:var(--fondo); border:none;
+    border-radius:10px; padding:14px; font:inherit; font-size:15px; cursor:pointer}
+  .boton.sec{background:none; color:var(--suave); border:1px solid var(--borde)}
+
+  /* Círculo de respiración */
+  .circulo{width:150px; height:150px; margin:20px auto; border-radius:50%;
+    background:var(--ok-fondo); border:2px solid var(--ok);
+    transition:transform linear; transform:scale(.55)}
+
+  /* Balanza pros y contras */
+  .balanza{display:flex; flex-direction:column; gap:10px}
+  .cara{border:1px solid var(--borde); border-radius:12px; padding:14px; text-align:left}
+  .cara h3{margin:0 0 8px; font-size:14px; font-weight:600}
+  .cara.si h3{color:var(--ok)}
+  .cara.no h3{color:var(--crisis)}
+  .cara ul{margin:0; padding-left:18px; font-size:14px; line-height:1.7; color:var(--suave)}
+  .cierre{font-size:14px; line-height:1.6; color:var(--texto); margin:0}
 </style>
 </head>
 <body>
@@ -114,6 +145,32 @@ const TEXTOS = {
   peligro: 'Si hay peligro inmediato para tu vida o tu seguridad, o no puedes desplazarte: <a href="tel:112">112</a>',
 };
 
+// ── Ejercicios de tolerancia al malestar ──────────────────────
+// Frases del surf del craving: van rotando durante los 15 minutos.
+const FRASES_SURF = [
+  'El impulso es una ola. Sube, llega arriba y baja sola.',
+  'No tienes que hacer nada con él. Solo mirarlo pasar.',
+  '¿Dónde lo notas en el cuerpo? Obsérvalo sin pelearte.',
+  'No estás cediendo. Estás esperando. Es distinto.',
+  'La ola ya ha empezado a bajar aunque todavía no lo notes.',
+  'Cada minuto que pasa, el impulso pierde fuerza.',
+  'Has aguantado hasta aquí. Ya sabes que se puede.',
+  'No dura para siempre. Nunca lo ha hecho.',
+];
+
+const PROS_SI = [
+  'Mantengo mi sobriedad y mis logros',
+  'Mañana me sentiré bien conmigo',
+  'Protejo mis relaciones y mi salud',
+  'El impulso dura solo 15-20 minutos',
+];
+const PROS_NO = [
+  'Vuelvo a empezar la cuenta',
+  'La culpa empeorará el estado',
+  'Un trago nunca se queda solo',
+  'Rompo la promesa que me hice',
+];
+
 /* ═══════════════════════════════════════════════════════════════
    LÓGICA — a partir de aquí, normalmente no hace falta tocar nada
    ═══════════════════════════════════════════════════════════════ */
@@ -146,37 +203,250 @@ function proximaApertura(ahora){
   return null;
 }
 
-const VISTA_ABIERTO = `
-  <button class="tarjeta">
-    <b>Tarjeta de hoy</b><em>¿Cómo estás hoy?</em>
-  </button>
-  <button class="tarjeta">
-    <b>Avisos</b><em>próxima actividad</em>
-  </button>`;
+// ── Temporizadores: se paran SIEMPRE al cambiar de pantalla ────
+let relojes = [];
+function pararRelojes(){
+  relojes.forEach(id => { clearTimeout(id); clearInterval(id); });
+  relojes = [];
+}
+const mmss = seg =>
+  String(Math.floor(seg/60)).padStart(2,'0') + ':' + String(seg%60).padStart(2,'0');
 
-const VISTA_CERRADO = `
-  <button class="tarjeta foco">
-    <b>Un momento difícil</b><em>tolerancia al malestar · empezar</em>
-  </button>
-  <button class="tarjeta atenuada">
-    <b>Tarjeta de hoy</b><em>disponible cuando quieras</em>
-  </button>`;
+// ── Navegación entre pantallas ─────────────────────────────────
+let pantalla = 'inicio';
 
-function pintar(){
+function ir(nombre){
+  pararRelojes();          // nunca dejar un cronómetro corriendo por detrás
+  pantalla = nombre;
+  scrollTo(0,0);
+  pintar();
+}
+
+const vista = () => document.getElementById('vista');
+
+// ── Pantallas ──────────────────────────────────────────────────
+
+function pantallaInicio(){
   const v = estadoVentana();
+  vista().innerHTML = v.abierto ? `
+    <button class="tarjeta" onclick="ir('menu')">
+      <b>Un momento difícil</b><em>tolerancia al malestar</em>
+    </button>
+    <button class="tarjeta">
+      <b>Tarjeta de hoy</b><em>¿Cómo estás hoy?</em>
+    </button>
+    <button class="tarjeta">
+      <b>Avisos</b><em>próxima actividad</em>
+    </button>`
+  : `
+    <button class="tarjeta foco" onclick="ir('menu')">
+      <b>Un momento difícil</b><em>tolerancia al malestar · empezar</em>
+    </button>
+    <button class="tarjeta atenuada">
+      <b>Tarjeta de hoy</b><em>disponible cuando quieras</em>
+    </button>`;
+}
 
+function pantallaMenu(){
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('inicio')">← Volver</button>
+    <h1 class="titulo">Un momento difícil</h1>
+    <p class="entradilla">Elige lo que puedas hacer ahora mismo. No hace falta hacerlo bien:
+      basta con empezar.</p>
+    <div style="height:4px"></div>
+    <button class="tarjeta" onclick="ir('surf')">
+      <b>🌊 Surf del craving</b><em>Acompañar la ola hasta que baje · 15 min</em>
+    </button>
+    <button class="tarjeta" onclick="ir('respiracion')">
+      <b>🫁 Respiración 4-6-8</b><em>Bajar la activación · 3 min</em>
+    </button>
+    <button class="tarjeta" onclick="ir('tip')">
+      <b>🧊 Temperatura (TIP)</b><em>Cortar la activación rápido · 30 seg</em>
+    </button>
+    <button class="tarjeta" onclick="ir('pros')">
+      <b>⚖️ Pros y contras</b><em>Ganar tiempo antes de decidir</em>
+    </button>`;
+}
+
+// Surf del craving: 15 min, con frases que van cambiando.
+function pantallaSurf(){
+  const TOTAL = 15*60;
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('menu')">← Volver</button>
+    <section class="ejercicio">
+      <h1 class="titulo">Surf del craving</h1>
+      <div class="reloj" id="reloj">${mmss(TOTAL)}</div>
+      <p class="guia" id="guia">${FRASES_SURF[0]}</p>
+      <button class="boton" id="btn">Empezar</button>
+      <p class="nota">El impulso no crece para siempre: sube, llega a un pico y baja solo,
+        normalmente en 15-20 minutos. No tienes que hacerlo desaparecer. Solo acompañarlo.
+        (TM · tolerancia al malestar)</p>
+    </section>
+    <button class="boton sec" onclick="ir('menu')">He superado la ola</button>`;
+
+  let quedan = TOTAL, corriendo = false;
+  const reloj = document.getElementById('reloj');
+  const guia  = document.getElementById('guia');
+  const btn   = document.getElementById('btn');
+
+  btn.onclick = () => {
+    if (corriendo){ pararRelojes(); corriendo = false; btn.textContent = 'Seguir'; return; }
+    corriendo = true; btn.textContent = 'Pausa';
+    const id = setInterval(() => {
+      quedan--;
+      reloj.textContent = mmss(Math.max(0, quedan));
+      // una frase distinta por cada tramo del ejercicio
+      const tramo = Math.floor((TOTAL - quedan) / (TOTAL / FRASES_SURF.length));
+      guia.textContent = FRASES_SURF[Math.min(tramo, FRASES_SURF.length - 1)];
+      if (quedan <= 0){
+        pararRelojes(); corriendo = false;
+        guia.textContent = 'La ola ha pasado. Lo has hecho tú.';
+        btn.textContent = 'Terminado';
+        btn.disabled = true;
+      }
+    }, 1000);
+    relojes.push(id);
+  };
+}
+
+// Respiración 4-6-8, con el círculo guiando el ritmo.
+function pantallaRespiracion(){
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('menu')">← Volver</button>
+    <section class="ejercicio">
+      <h1 class="titulo">Respiración 4-6-8</h1>
+      <div class="circulo" id="circulo"></div>
+      <p class="guia" id="guia">Sigue el círculo: crece al coger aire, se queda quieto y
+        baja al soltarlo.</p>
+      <button class="boton" id="btn">Empezar</button>
+      <p class="nota">Soltar el aire más despacio de lo que se coge baja la activación del
+        cuerpo. No fuerces: si te mareas, respira normal.</p>
+    </section>
+    <button class="boton sec" onclick="ir('menu')">Ya estoy mejor</button>`;
+
+  const FASES = [
+    { texto:'Coge aire por la nariz…', seg:4, escala:1    },
+    { texto:'Mantén…',                 seg:6, escala:1    },
+    { texto:'Suelta despacio…',        seg:8, escala:.55  },
+  ];
+  const circulo = document.getElementById('circulo');
+  const guia = document.getElementById('guia');
+  const btn  = document.getElementById('btn');
+  let i = 0;
+
+  function fase(){
+    const f = FASES[i % FASES.length];
+    guia.textContent = f.texto;
+    circulo.style.transitionDuration = f.seg + 's';
+    circulo.style.transform = 'scale(' + f.escala + ')';
+    i++;
+    relojes.push(setTimeout(fase, f.seg * 1000));
+  }
+
+  btn.onclick = () => {
+    pararRelojes();
+    if (btn.dataset.on === '1'){
+      btn.dataset.on = '0'; btn.textContent = 'Empezar';
+      guia.textContent = 'Cuando quieras, seguimos.';
+      return;
+    }
+    btn.dataset.on = '1'; btn.textContent = 'Parar';
+    i = 0; fase();
+  };
+}
+
+// TIP — temperatura. Activa el reflejo de inmersión.
+function pantallaTip(){
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('menu')">← Volver</button>
+    <section class="ejercicio">
+      <h1 class="titulo">Temperatura</h1>
+      <ol class="pasos">
+        <li>Llena el lavabo de agua fría, o coge hielo envuelto en un paño.</li>
+        <li>Aguanta la respiración.</li>
+        <li>Mete la cara en el agua, o apoya el frío en la frente y los ojos.</li>
+        <li>Aguanta unos 30 segundos.</li>
+      </ol>
+      <div class="reloj" id="reloj">00:30</div>
+      <button class="boton" id="btn">Empezar 30 seg</button>
+      <p class="nota">El frío en la cara baja el pulso en segundos: es un reflejo del cuerpo,
+        no fuerza de voluntad. Sirve cuando la activación está tan alta que no puedes pensar.
+        <br><br>Si tienes un problema de corazón, la tensión baja o tomas medicación cardíaca,
+        consúltalo antes con tu médico.</p>
+    </section>
+    <button class="boton sec" onclick="ir('menu')">Ya estoy mejor</button>`;
+
+  const reloj = document.getElementById('reloj');
+  const btn = document.getElementById('btn');
+  let quedan = 30;
+
+  btn.onclick = () => {
+    pararRelojes();
+    quedan = 30;
+    btn.disabled = true;
+    const id = setInterval(() => {
+      quedan--;
+      reloj.textContent = mmss(Math.max(0, quedan));
+      if (quedan <= 0){
+        pararRelojes();
+        reloj.textContent = '00:00';
+        btn.disabled = false;
+        btn.textContent = 'Otra vez';
+      }
+    }, 1000);
+    relojes.push(id);
+  };
+}
+
+// Pros y contras: la balanza, para ganar tiempo antes de decidir.
+function pantallaPros(){
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('menu')">← Volver</button>
+    <section class="ejercicio" style="text-align:left">
+      <h1 class="titulo">Pros y contras</h1>
+      <p class="entradilla" style="margin:6px 0 14px">Antes de actuar sobre el impulso,
+        mira la balanza. Leerla ya es ganar tiempo. (TM Ficha 4)</p>
+      <div class="balanza">
+        <div class="cara si">
+          <h3>Si no bebo</h3>
+          <ul>${PROS_SI.map(t => '<li>' + t + '</li>').join('')}</ul>
+        </div>
+        <div class="cara no">
+          <h3>Si bebo</h3>
+          <ul>${PROS_NO.map(t => '<li>' + t + '</li>').join('')}</ul>
+        </div>
+      </div>
+      <p class="nota">Beber no resuelve lo que ha traído el impulso. Lo pospone y lo complica.</p>
+    </section>
+    <button class="boton sec" onclick="ir('menu')">Volver</button>`;
+}
+
+const PANTALLAS = {
+  inicio: pantallaInicio,
+  menu: pantallaMenu,
+  surf: pantallaSurf,
+  respiracion: pantallaRespiracion,
+  tip: pantallaTip,
+  pros: pantallaPros,
+};
+
+// La cabecera: señal de honestidad + aviso del bloque de apoyo.
+function pintarCabecera(){
+  const v = estadoVentana();
   document.getElementById('estado').dataset.abierto = v.abierto;
   document.getElementById('estadoTitulo').textContent =
     v.abierto ? 'Centro abierto' : 'Centro cerrado';
   document.getElementById('estadoSub').textContent =
     v.abierto ? 'hay alguien · hasta las ' + v.cierraA
               : 'sin moderación ahora' + (v.proximaApertura ? ' · abre ' + v.proximaApertura : '');
-
   const aviso = document.getElementById('apoyoAviso');
   aviso.textContent = TEXTOS.avisoSinModeracion;
   aviso.hidden = v.abierto;
+}
 
-  document.getElementById('vista').innerHTML = v.abierto ? VISTA_ABIERTO : VISTA_CERRADO;
+function pintar(){
+  pintarCabecera();
+  (PANTALLAS[pantalla] || pantallaInicio)();
 }
 
 // Estos no cambian con la hora: se ponen una sola vez.
@@ -185,9 +455,11 @@ document.getElementById('apoyoTexto').innerHTML = TEXTOS.apoyoTexto;
 document.getElementById('apoyoPeligro').innerHTML = TEXTOS.peligro;
 
 pintar();
-// Recalcula cada 30s: si la app se queda abierta y cruza las 20:30,
-// la señal no debe seguir diciendo "hay alguien".
-setInterval(pintar, 30000);
+
+// Refresca SOLO la cabecera cada 30s: si la app se queda abierta y cruza
+// las 20:30, la señal no debe seguir diciendo "hay alguien".
+// No repinta la pantalla, para no cortar un ejercicio en marcha.
+setInterval(pintarCabecera, 30000);
 
 // Service worker: hace que la app funcione sin conexión y se pueda instalar.
 if ('serviceWorker' in navigator){

@@ -1,6 +1,6 @@
 // Service worker mínimo: guarda la app para que funcione sin conexión.
 // Si cambias index.html, sube el número de VERSION para que se actualice en los móviles.
-const VERSION = 'senda-v1';
+const VERSION = 'senda-v2';
 const ARCHIVOS = ['./', './index.html', './manifest.json', './icono-192.png', './icono-512.png'];
 
 self.addEventListener('install', e => {

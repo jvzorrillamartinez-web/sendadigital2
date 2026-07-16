@@ -44,6 +44,22 @@ el 112 es "no puedo ir".
 
 ---
 
+## Un momento difícil (tolerancia al malestar)
+
+Cuatro ejercicios, accesibles siempre y sin conexión. **No guardan nada**: se usan y ya.
+
+| Ejercicio | Qué hace |
+|---|---|
+| 🌊 **Surf del craving** | 15 min acompañando la ola, con frases que van cambiando. Se puede pausar. |
+| 🫁 **Respiración 4-6-8** | Un círculo marca el ritmo: 4 coger aire, 6 mantener, 8 soltar. |
+| 🧊 **Temperatura (TIP)** | Pasos + cronómetro de 30 seg. Lleva aviso médico. |
+| ⚖️ **Pros y contras** | La balanza, para ganar tiempo antes de decidir. (TM Ficha 4) |
+
+El bloque de apoyo (urgencias / 112) **sigue visible dentro de los ejercicios**: nunca se
+tapa ni se bloquea. Los cronómetros se detienen al salir.
+
+Los textos y las frases están en el bloque **CONFIGURACIÓN** de `index.html`.
+
 ## Qué hay aquí
 
 ```
@@ -81,6 +97,10 @@ versión llegue a los móviles que ya la tengan instalada.
    112 a una línea al pie. El encuadre dice que toda ruta de riesgo termina en 112 y
    profesional de referencia; esta versión mantiene el 112 accesible pero cambia su
    papel, y esa es una decisión clínica que conviene dejar por escrito.
+
+3. **Revisar el aviso médico del ejercicio TIP.** El frío en la cara está contraindicado
+   con problemas cardíacos, tensión baja o medicación cardíaca. La app lo advierte, pero
+   la redacción y el alcance del aviso los debe validar Jo.
 
 Ya no hace falta configurar ningún teléfono: el único número es el 112.
 
