@@ -101,6 +101,46 @@
   .vacio{font-size:14px; color:var(--suave); line-height:1.6; text-align:center;
     padding:24px 8px}
 
+  /* Tarjeta diaria */
+  .bloque{background:var(--superficie); border:1px solid var(--borde);
+    border-radius:var(--radio); padding:16px}
+  .bloque h3{margin:0 0 12px; font-size:15px; font-weight:500}
+  .animos{display:flex; gap:6px}
+  .animo{flex:1; aspect-ratio:1; border:1px solid var(--borde); border-radius:10px;
+    background:none; font-size:22px; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; padding:0; transition:transform .1s}
+  .animo[aria-pressed="true"]{border-color:var(--texto); border-width:2px; transform:scale(1.06)}
+  .animo-etq{display:flex; justify-content:space-between; font-size:11px;
+    color:var(--suave); margin-top:6px}
+  .habs{display:flex; flex-direction:column; gap:8px}
+  .hab{display:flex; align-items:center; gap:10px; border:1px solid var(--borde);
+    border-radius:10px; padding:12px; background:none; font:inherit; font-size:14px;
+    color:inherit; cursor:pointer; text-align:left}
+  .hab[aria-pressed="true"]{border-color:var(--ok); background:var(--ok-fondo); color:var(--ok)}
+  .hab .marca{width:18px; flex:none; text-align:center}
+  textarea{width:100%; border:1px solid var(--borde); border-radius:10px; padding:12px;
+    font:inherit; font-size:14px; background:var(--fondo); color:var(--texto);
+    resize:vertical; min-height:80px}
+
+  /* Sugerencia cuando el ánimo está bajo: menú, no veredicto */
+  .sugerencia{background:var(--ok-fondo); border:1px solid var(--ok);
+    border-radius:var(--radio); padding:16px}
+  .sugerencia p{margin:0 0 12px; font-size:14px; line-height:1.6; color:var(--ok)}
+  .sugerencia .recuerda{margin:12px 0 0; font-size:13px; color:var(--suave)}
+
+  /* Progreso */
+  .contador{text-align:center; padding:20px}
+  .contador .num{font-size:44px; font-weight:300; line-height:1.1}
+  .contador .etq{font-size:14px; color:var(--suave)}
+  .tira{display:grid; grid-template-columns:repeat(10,1fr); gap:5px; margin-top:4px}
+  .dia{aspect-ratio:1; border-radius:5px; background:var(--fondo);
+    border:1px solid var(--borde)}
+  .leyenda{display:flex; justify-content:space-between; font-size:11px;
+    color:var(--suave); margin-top:10px}
+  .peligro-btn{width:100%; background:none; border:1px solid var(--crisis-borde);
+    color:var(--crisis); border-radius:10px; padding:12px; font:inherit; font-size:14px;
+    cursor:pointer}
+
   /* Balanza pros y contras */
   .balanza{display:flex; flex-direction:column; gap:10px}
   .cara{border:1px solid var(--borde); border-radius:12px; padding:14px; text-align:left}
@@ -182,6 +222,29 @@ const PROS_NO = [
   'Rompo la promesa que me hice',
 ];
 
+// ── Tarjeta diaria ────────────────────────────────────────────
+// La escala de ánimo. Los colores van de apagado a verde: NUNCA rojo.
+// Estar bajo no es un error, y la app no lo pinta como una alarma.
+const ANIMOS = [
+  { n:1, cara:'😞', etq:'Muy bajo', color:'#7a8a9a' },
+  { n:2, cara:'😕', etq:'Bajo',     color:'#9aa5ad' },
+  { n:3, cara:'😐', etq:'Regular',  color:'#c2b280' },
+  { n:4, cara:'🙂', etq:'Bien',     color:'#7fb894' },
+  { n:5, cara:'😊', etq:'Muy bien', color:'#0f6e56' },
+];
+
+// Las habilidades son las mismas que se pueden practicar en la app.
+const HABILIDADES = [
+  { id:'surf',        etq:'🌊 Surf del craving' },
+  { id:'respiracion', etq:'🫁 Respiración' },
+  { id:'tip',         etq:'🧊 Temperatura' },
+  { id:'pros',        etq:'⚖️ Pros y contras' },
+  { id:'otra',        etq:'✋ Otra cosa que me ayudó' },
+];
+
+// A partir de qué ánimo se ofrece ayuda. Ofrecer, no diagnosticar.
+const ANIMO_BAJO = 2;
+
 /* ═══════════════════════════════════════════════════════════════
    LÓGICA — a partir de aquí, normalmente no hace falta tocar nada
    ═══════════════════════════════════════════════════════════════ */
@@ -248,6 +311,44 @@ async function cargarAvisos(){
   if (pantalla === 'inicio' || pantalla === 'avisos') pintar();
 }
 
+// ── Datos: SIEMPRE en este móvil, nunca salen ─────────────────
+// Son datos de salud (art. 9 RGPD). No hay servidor, no hay envío,
+// no hay copia. Si la persona borra, desaparecen de verdad.
+const CLAVE_TARJETAS = 'senda.tarjetas';
+const CLAVE_CONSENT  = 'senda.consentimiento';
+
+const hoyISO = (d = new Date()) =>
+  d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' +
+  String(d.getDate()).padStart(2,'0');
+
+function leerTarjetas(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_TARJETAS) || '{}'); }
+  catch(e){ return {}; }   // si el dato está corrupto, no romper la app
+}
+function guardarTarjeta(fecha, datos){
+  const t = leerTarjetas();
+  t[fecha] = datos;
+  try { localStorage.setItem(CLAVE_TARJETAS, JSON.stringify(t)); return true; }
+  catch(e){ return false; }
+}
+function hayConsentimiento(){
+  try { return localStorage.getItem(CLAVE_CONSENT) === 'si'; } catch(e){ return false; }
+}
+function darConsentimiento(){
+  try { localStorage.setItem(CLAVE_CONSENT, 'si'); } catch(e){}
+}
+function borrarTodo(){
+  try { localStorage.removeItem(CLAVE_TARJETAS); localStorage.removeItem(CLAVE_CONSENT); }
+  catch(e){}
+}
+
+// Días practicando: un TOTAL, no una racha.
+// Una racha se rompe y castiga; un total solo sube. No se puede perder.
+function diasPracticando(){
+  return Object.values(leerTarjetas())
+    .filter(t => t.habilidades && t.habilidades.length > 0).length;
+}
+
 // ── Temporizadores: se paran SIEMPRE al cambiar de pantalla ────
 let relojes = [];
 function pararRelojes(){
@@ -271,6 +372,15 @@ const vista = () => document.getElementById('vista');
 
 // ── Pantallas ──────────────────────────────────────────────────
 
+// Subtítulo de la tarjeta de hoy. Sin regañar si no está hecha.
+function resumenTarjeta(){
+  if (!hayConsentimiento()) return 'cómo estás hoy';
+  const t = leerTarjetas()[hoyISO()];
+  if (!t) return '¿cómo estás hoy?';
+  const a = ANIMOS.find(x => x.n === t.animo);
+  return 'hecha ✓' + (a ? ' · ' + a.etq.toLowerCase() : '');
+}
+
 // Subtítulo de la tarjeta de avisos: el próximo, si se ha podido cargar.
 function resumenAvisos(){
   if (avisos === null) return avisosFallo ? 'actividades de la asociación' : 'cargando…';
@@ -289,20 +399,213 @@ function pantallaInicio(){
     <button class="tarjeta" onclick="ir('menu')">
       <b>Un momento difícil</b><em>tolerancia al malestar</em>
     </button>
-    <button class="tarjeta">
-      <b>Tarjeta de hoy</b><em>¿Cómo estás hoy?</em>
+    <button class="tarjeta" onclick="ir('tarjeta')">
+      <b>Tarjeta de hoy</b><em>${resumenTarjeta()}</em>
     </button>
     ${tarjetaAvisos('')}`
   : `
     <button class="tarjeta foco" onclick="ir('menu')">
       <b>Un momento difícil</b><em>tolerancia al malestar · empezar</em>
     </button>
-    <button class="tarjeta atenuada">
-      <b>Tarjeta de hoy</b><em>disponible cuando quieras</em>
+    <button class="tarjeta atenuada" onclick="ir('tarjeta')">
+      <b>Tarjeta de hoy</b><em>${resumenTarjeta()}</em>
     </button>
     ${tarjetaAvisos('atenuada')}`;
 }
 
+// Consentimiento: puerta de entrada a los datos. Sin esto no se guarda nada.
+function pantallaConsentimiento(){
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('inicio')">← Volver</button>
+    <h1 class="titulo">Antes de empezar</h1>
+    <section class="bloque">
+      <h3>Qué se guarda</h3>
+      <p style="margin:0;font-size:14px;color:var(--suave);line-height:1.7">
+        Cómo estás cada día, qué habilidades has practicado y lo que quieras
+        escribir en la línea libre.
+      </p>
+    </section>
+    <section class="bloque">
+      <h3>Dónde se guarda</h3>
+      <p style="margin:0;font-size:14px;color:var(--suave);line-height:1.7">
+        <strong style="color:var(--texto)">Solo en este móvil.</strong> No se envía a
+        ningún sitio, no hay servidor y no hay copia en internet.<br><br>
+        <strong style="color:var(--texto)">Nadie más lo ve.</strong> Ni la asociación,
+        ni tu terapeuta. Es tuyo. Si quieres enseñárselo a alguien, se lo enseñas tú.<br><br>
+        Puedes <strong style="color:var(--texto)">borrarlo entero cuando quieras</strong>,
+        desde la pantalla de progreso. Se borra de verdad.
+      </p>
+    </section>
+    <section class="bloque">
+      <h3>Qué no es</h3>
+      <p style="margin:0;font-size:14px;color:var(--suave);line-height:1.7">
+        Esto no sustituye al tratamiento, ni a tu terapeuta, ni a las reuniones.
+        Tampoco es un servicio de urgencias. Es una libreta para ti.
+      </p>
+    </section>
+    <button class="boton" onclick="aceptar()">Entendido, activar la tarjeta</button>
+    <button class="boton sec" onclick="ir('inicio')">Ahora no</button>`;
+}
+function aceptar(){ darConsentimiento(); ir('tarjeta'); }
+
+// La tarjeta de hoy. Quince segundos: tres toques y ya.
+function pantallaTarjeta(){
+  if (!hayConsentimiento()) return pantallaConsentimiento();
+
+  const fecha = hoyISO();
+  const previa = leerTarjetas()[fecha] || { animo:null, habilidades:[], nota:'' };
+  let animo = previa.animo;
+  let habs = [...(previa.habilidades || [])];
+
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('inicio')">← Volver</button>
+    <h1 class="titulo">Tarjeta de hoy</h1>
+    <p class="entradilla">No hay respuestas buenas ni malas. Solo cómo ha ido.</p>
+    <div style="height:4px"></div>
+
+    <section class="bloque">
+      <h3>¿Cómo estás hoy?</h3>
+      <div class="animos" id="animos">
+        ${ANIMOS.map(a => `
+          <button class="animo" data-n="${a.n}" aria-pressed="${animo === a.n}"
+            title="${a.etq}">${a.cara}</button>`).join('')}
+      </div>
+      <div class="animo-etq"><span>Muy bajo</span><span>Muy bien</span></div>
+    </section>
+
+    <div id="zonaSugerencia"></div>
+
+    <section class="bloque">
+      <h3>¿Has practicado algo hoy?</h3>
+      <div class="habs" id="habs">
+        ${HABILIDADES.map(h => `
+          <button class="hab" data-id="${h.id}" aria-pressed="${habs.includes(h.id)}">
+            <span class="marca">${habs.includes(h.id) ? '✓' : '○'}</span>${h.etq}
+          </button>`).join('')}
+      </div>
+    </section>
+
+    <section class="bloque">
+      <h3>Una línea, si quieres</h3>
+      <textarea id="nota" placeholder="Lo que no cabe en un número…">${esc(previa.nota || '')}</textarea>
+    </section>
+
+    <button class="boton" id="guardar">Guardar</button>
+    <button class="boton sec" onclick="ir('progreso')">Ver mi progreso</button>`;
+
+  // Ánimo
+  document.getElementById('animos').onclick = e => {
+    const b = e.target.closest('.animo'); if (!b) return;
+    animo = Number(b.dataset.n);
+    document.querySelectorAll('.animo').forEach(x =>
+      x.setAttribute('aria-pressed', Number(x.dataset.n) === animo));
+    sugerir(animo);
+  };
+
+  // Habilidades
+  document.getElementById('habs').onclick = e => {
+    const b = e.target.closest('.hab'); if (!b) return;
+    const id = b.dataset.id;
+    habs.includes(id) ? habs.splice(habs.indexOf(id),1) : habs.push(id);
+    const puesta = habs.includes(id);
+    b.setAttribute('aria-pressed', puesta);
+    b.querySelector('.marca').textContent = puesta ? '✓' : '○';
+  };
+
+  document.getElementById('guardar').onclick = () => {
+    const ok = guardarTarjeta(fecha, {
+      animo, habilidades: habs, nota: document.getElementById('nota').value.trim()
+    });
+    const b = document.getElementById('guardar');
+    b.textContent = ok ? 'Guardado ✓' : 'No he podido guardar';
+    relojes.push(setTimeout(() => ir('inicio'), 700));
+  };
+
+  if (animo !== null) sugerir(animo);
+}
+
+// Si el ánimo está bajo: ofrecer SUS habilidades. Ni juicio, ni alarma.
+function sugerir(animo){
+  const z = document.getElementById('zonaSugerencia');
+  if (!z) return;
+  if (animo === null || animo > ANIMO_BAJO){ z.innerHTML = ''; return; }
+  z.innerHTML = `
+    <section class="sugerencia">
+      <p>Hoy pesa. No hace falta que hagas nada con eso ahora mismo, pero si quieres,
+        tienes tus herramientas a mano.</p>
+      <button class="boton" onclick="ir('menu')">Ver qué puedo hacer</button>
+      <p class="recuerda">Y si no consigues ponerlo en marcha, urgencias está abierta
+        siempre. Lo tienes arriba.</p>
+    </section>`;
+}
+
+// Progreso: la forma, no una nota. Sin porcentajes ni comparaciones.
+function pantallaProgreso(){
+  if (!hayConsentimiento()) return pantallaConsentimiento();
+
+  const tarjetas = leerTarjetas();
+  const total = diasPracticando();
+
+  // últimos 30 días, el de hoy el último
+  const celdas = [];
+  for (let i = 29; i >= 0; i--){
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const t = tarjetas[hoyISO(d)];
+    const a = t && t.animo ? ANIMOS.find(x => x.n === t.animo) : null;
+    celdas.push(`<div class="dia" title="${hoyISO(d)}"
+      style="${a ? 'background:'+a.color+';border-color:'+a.color : ''}"></div>`);
+  }
+
+  const conNota = Object.entries(tarjetas)
+    .filter(([,t]) => t.nota)
+    .sort((a,b) => b[0].localeCompare(a[0]))
+    .slice(0,5);
+
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('inicio')">← Volver</button>
+    <h1 class="titulo">Mi progreso</h1>
+    <p class="entradilla">Esto no es una nota. Es para ver la forma: cuándo cuesta más,
+      qué se repite, qué te ayuda.</p>
+    <div style="height:4px"></div>
+
+    <section class="bloque contador">
+      <div class="num">${total}</div>
+      <div class="etq">${total === 1 ? 'día practicando habilidades' : 'días practicando habilidades'}</div>
+      <p style="font-size:12px;color:var(--suave);margin:10px 0 0;line-height:1.5">
+        Este número solo sube. No se pierde por un mal día.</p>
+    </section>
+
+    <section class="bloque">
+      <h3>Los últimos 30 días</h3>
+      <div class="tira">${celdas.join('')}</div>
+      <div class="leyenda"><span>hace 30 días</span><span>hoy</span></div>
+      <p style="font-size:12px;color:var(--suave);margin:12px 0 0;line-height:1.5">
+        Los huecos son días sin rellenar. No pasa nada: no hay que rellenarlos todos.</p>
+    </section>
+
+    ${conNota.length ? `
+    <section class="bloque">
+      <h3>Lo que escribiste</h3>
+      ${conNota.map(([f,t]) => `
+        <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:var(--suave)">
+          <strong style="color:var(--texto)">${f.split('-').reverse().join('/')}</strong><br>
+          ${esc(t.nota)}</p>`).join('')}
+    </section>` : ''}
+
+    <section class="bloque">
+      <h3>Tus datos</h3>
+      <p style="margin:0 0 12px;font-size:13px;color:var(--suave);line-height:1.6">
+        Todo esto está solo en este móvil. Nadie más lo ve.</p>
+      <button class="peligro-btn" onclick="pedirBorrado()">Borrar todos mis datos</button>
+    </section>`;
+}
+
+function pedirBorrado(){
+  if (confirm('¿Seguro? Se borrará todo lo que has escrito y no se puede recuperar.')){
+    borrarTodo();
+    ir('inicio');
+  }
+}
 // Avisos: solo lectura. Publica el terapeuta; aquí nadie escribe ni responde.
 function pantallaAvisos(){
   let cuerpo;
@@ -513,6 +816,9 @@ const PANTALLAS = {
   tip: pantallaTip,
   pros: pantallaPros,
   avisos: pantallaAvisos,
+  consentimiento: pantallaConsentimiento,
+  tarjeta: pantallaTarjeta,
+  progreso: pantallaProgreso,
 };
 
 // La cabecera: señal de honestidad + aviso del bloque de apoyo.

@@ -102,6 +102,39 @@ Por eso no expone teléfonos de nadie ni necesita moderación fuera de tu horari
 canal de anuncios que pide el documento del grupo, para reducir la exposición mutua de
 datos.
 
+## Tarjeta de hoy y progreso
+
+Tres toques, quince segundos: **ánimo** (5 niveles), **habilidades practicadas** y una
+**línea libre** opcional. No pregunta por las ganas de beber: preguntarlo cada día
+mantiene la atención puesta ahí.
+
+**Contador: días practicando habilidades, y es un TOTAL, no una racha.** Una racha se
+rompe y castiga; un total solo sube. Un mal día no borra nada. Deliberadamente no hay
+cuenta de días sin beber: convertiría la app en el sitio que te pone el marcador a cero.
+
+**El progreso no es una nota.** Ni porcentajes, ni cumplimiento, ni comparaciones: una
+tira de 30 días para ver la forma (cuándo cuesta más, qué se repite). Los huecos son
+días sin rellenar y la app dice expresamente que no pasa nada.
+
+**Si el ánimo está bajo**, la app ofrece sus propias habilidades y recuerda la vía de
+apoyo. No interpreta, no diagnostica, no alarma: es un menú, no un veredicto. Los colores
+del ánimo van de apagado a verde — **nunca rojo**: estar bajo no es un error.
+
+## Los datos
+
+Se guardan **solo en ese móvil** (`localStorage`). No hay servidor, ni envío, ni copia:
+la única llamada de red de toda la app es leer `avisos.txt`. Ni la asociación ni el
+terapeuta ven nada — si alguien quiere enseñar su progreso en sesión, lo enseña él.
+
+- **Consentimiento primero:** hasta aceptarlo no se guarda absolutamente nada.
+- **Borrado real** desde la pantalla de progreso, en cualquier momento.
+- Son datos de salud (art. 9 RGPD). Cualquier cambio que los saque del móvil se decide
+  antes, con base legal y consentimiento. No se hace "porque es cómodo".
+
+⚠️ **Importante:** para que los datos no se pierdan, conviene **instalar la app en la
+pantalla de inicio** del móvil. Si se usa solo como página web, iOS puede borrar lo
+guardado tras unos días sin abrirla.
+
 ## Qué hay aquí
 
 ```
