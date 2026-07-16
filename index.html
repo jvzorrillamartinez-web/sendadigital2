@@ -90,6 +90,17 @@
     background:var(--ok-fondo); border:2px solid var(--ok);
     transition:transform linear; transform:scale(.55)}
 
+  /* Avisos */
+  .aviso-item{background:var(--superficie); border:1px solid var(--borde);
+    border-radius:var(--radio); padding:16px}
+  .aviso-item h3{margin:0 0 4px; font-size:15px; font-weight:600}
+  .aviso-item .cuando{display:inline-block; font-size:13px; color:var(--ok);
+    background:var(--ok-fondo); border-radius:6px; padding:2px 8px; margin-bottom:8px}
+  .aviso-item p{margin:0; font-size:14px; color:var(--suave); line-height:1.6;
+    white-space:pre-line}
+  .vacio{font-size:14px; color:var(--suave); line-height:1.6; text-align:center;
+    padding:24px 8px}
+
   /* Balanza pros y contras */
   .balanza{display:flex; flex-direction:column; gap:10px}
   .cara{border:1px solid var(--borde); border-radius:12px; padding:14px; text-align:left}
@@ -203,6 +214,40 @@ function proximaApertura(ahora){
   return null;
 }
 
+// ── Avisos: se leen de avisos.txt (lo edita el terapeuta en GitHub) ──
+let avisos = null;      // null = todavía no cargado
+let avisosFallo = false;
+
+const esc = s => s.replace(/[&<>"]/g, c =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+// Formato tolerante: bloques separados por una línea con ---
+// 1ª línea = título · línea "cuándo:" = fecha (opcional) · resto = texto
+function parsearAvisos(texto){
+  return texto.split(/^\s*---+\s*$/m)
+    .map(bloque => {
+      const lineas = bloque.split('\n').map(l => l.trim()).filter(l => l !== '');
+      if (!lineas.length) return null;
+      const titulo = lineas.shift().replace(/^#+\s*/, ''); // admite # delante
+      let cuando = '';
+      const i = lineas.findIndex(l => /^cu[áa]ndo\s*:/i.test(l));
+      if (i !== -1) cuando = lineas.splice(i,1)[0].replace(/^cu[áa]ndo\s*:\s*/i, '');
+      return { titulo, cuando, texto: lineas.join('\n') };
+    })
+    .filter(Boolean);
+}
+
+async function cargarAvisos(){
+  try {
+    const r = await fetch('avisos.txt', { cache:'no-cache' });
+    if (!r.ok) throw new Error(r.status);
+    avisos = parsearAvisos(await r.text());
+  } catch (e) {
+    avisosFallo = true;   // sin conexión, o abierto como archivo suelto
+  }
+  if (pantalla === 'inicio' || pantalla === 'avisos') pintar();
+}
+
 // ── Temporizadores: se paran SIEMPRE al cambiar de pantalla ────
 let relojes = [];
 function pararRelojes(){
@@ -226,8 +271,20 @@ const vista = () => document.getElementById('vista');
 
 // ── Pantallas ──────────────────────────────────────────────────
 
+// Subtítulo de la tarjeta de avisos: el próximo, si se ha podido cargar.
+function resumenAvisos(){
+  if (avisos === null) return avisosFallo ? 'actividades de la asociación' : 'cargando…';
+  if (!avisos.length) return 'no hay avisos ahora mismo';
+  return esc(avisos[0].titulo);
+}
+
 function pantallaInicio(){
   const v = estadoVentana();
+  const tarjetaAvisos = clase => `
+    <button class="tarjeta ${clase}" onclick="ir('avisos')">
+      <b>Avisos</b><em>${resumenAvisos()}</em>
+    </button>`;
+
   vista().innerHTML = v.abierto ? `
     <button class="tarjeta" onclick="ir('menu')">
       <b>Un momento difícil</b><em>tolerancia al malestar</em>
@@ -235,16 +292,43 @@ function pantallaInicio(){
     <button class="tarjeta">
       <b>Tarjeta de hoy</b><em>¿Cómo estás hoy?</em>
     </button>
-    <button class="tarjeta">
-      <b>Avisos</b><em>próxima actividad</em>
-    </button>`
+    ${tarjetaAvisos('')}`
   : `
     <button class="tarjeta foco" onclick="ir('menu')">
       <b>Un momento difícil</b><em>tolerancia al malestar · empezar</em>
     </button>
     <button class="tarjeta atenuada">
       <b>Tarjeta de hoy</b><em>disponible cuando quieras</em>
-    </button>`;
+    </button>
+    ${tarjetaAvisos('atenuada')}`;
+}
+
+// Avisos: solo lectura. Publica el terapeuta; aquí nadie escribe ni responde.
+function pantallaAvisos(){
+  let cuerpo;
+  if (avisos === null && !avisosFallo){
+    cuerpo = '<p class="vacio">Cargando…</p>';
+  } else if (avisosFallo && avisos === null){
+    cuerpo = '<p class="vacio">No he podido cargar los avisos.<br>' +
+             'Cuando vuelvas a tener conexión, aparecerán aquí.</p>';
+  } else if (!avisos.length){
+    cuerpo = '<p class="vacio">No hay avisos ahora mismo.</p>';
+  } else {
+    cuerpo = avisos.map(a => `
+      <article class="aviso-item">
+        <h3>${esc(a.titulo)}</h3>
+        ${a.cuando ? `<span class="cuando">${esc(a.cuando)}</span>` : ''}
+        ${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
+      </article>`).join('');
+  }
+
+  vista().innerHTML = `
+    <button class="volver" onclick="ir('inicio')">← Volver</button>
+    <h1 class="titulo">Avisos</h1>
+    <p class="entradilla">Actividades y avisos de la asociación. La participación siempre
+      es voluntaria.</p>
+    <div style="height:4px"></div>
+    ${cuerpo}`;
 }
 
 function pantallaMenu(){
@@ -428,6 +512,7 @@ const PANTALLAS = {
   respiracion: pantallaRespiracion,
   tip: pantallaTip,
   pros: pantallaPros,
+  avisos: pantallaAvisos,
 };
 
 // La cabecera: señal de honestidad + aviso del bloque de apoyo.
@@ -455,6 +540,7 @@ document.getElementById('apoyoTexto').innerHTML = TEXTOS.apoyoTexto;
 document.getElementById('apoyoPeligro').innerHTML = TEXTOS.peligro;
 
 pintar();
+cargarAvisos();
 
 // Refresca SOLO la cabecera cada 30s: si la app se queda abierta y cruza
 // las 20:30, la señal no debe seguir diciendo "hay alguien".

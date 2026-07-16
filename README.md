@@ -60,10 +60,53 @@ tapa ni se bloquea. Los cronómetros se detienen al salir.
 
 Los textos y las frases están en el bloque **CONFIGURACIÓN** de `index.html`.
 
+## 📢 Publicar un aviso (terapeuta)
+
+No hace falta ningún panel ni contraseña: **GitHub es el panel**. Los avisos están en el
+archivo **`avisos.txt`** del repo.
+
+**Cómo publicar:**
+
+1. En GitHub, entra en `avisos.txt`.
+2. Pulsa el **lápiz** (✏️, arriba a la derecha) para editar.
+3. Escribe. Guarda con **Commit changes**.
+4. En un par de minutos aparece en el móvil de todos.
+
+**Cómo se escribe.** Cada aviso son tres cosas y se separan con `---`:
+
+```
+Comida de verano en El Pinar
+cuándo: sábado 20 de julio, 14:00
+Antes de comer hay reunión de encuadre a las 13:15.
+La participación es voluntaria.
+
+---
+
+Reunión de procesamiento
+cuándo: martes 23 de julio, 18:00
+Ponemos en común cómo fue.
+```
+
+- **Primera línea** = el título.
+- **`cuándo:`** = la fecha (se puede poner lo que sea: "todos los jueves", "el sábado por
+  la tarde"). Es opcional: si no la pones, no sale.
+- **El resto** = el texto, tantas líneas como quieras.
+- El aviso de arriba es el que sale primero, y es el que se ve en la pantalla de inicio.
+
+El formato perdona: mayúsculas, espacios de más, almohadillas delante del título, guiones
+de más en el separador. Si el archivo se queda vacío, la app dice "no hay avisos" y no se
+rompe.
+
+**Es solo lectura.** Nadie puede escribir ni responder en los avisos: publicas tú, y ya.
+Por eso no expone teléfonos de nadie ni necesita moderación fuera de tu horario. Es el
+canal de anuncios que pide el documento del grupo, para reducir la exposición mutua de
+datos.
+
 ## Qué hay aquí
 
 ```
 index.html          ← la app entera (diseño y lógica dentro)
+avisos.txt          ← LOS AVISOS: esto es lo que edita el terapeuta
 sw.js               ← hace que funcione sin conexión
 manifest.json       ← para que se instale como app en el móvil
 icono-192.png
