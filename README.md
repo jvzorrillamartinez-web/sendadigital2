@@ -102,6 +102,18 @@ Por eso no expone teléfonos de nadie ni necesita moderación fuera de tu horari
 canal de anuncios que pide el documento del grupo, para reducir la exposición mutua de
 datos.
 
+## La primera vez que se abre
+
+Sale una **bienvenida** de cuatro pantallas: qué es la app, para qué sirve cada técnica,
+qué es el día a día (tarjeta, progreso, avisos) y el aviso de que irá creciendo. Se
+muestra **una sola vez** y **siempre se puede saltar** — quien abre la app en pleno
+craving necesita el ejercicio ya, no leer.
+
+Después, el botón **?** (arriba a la derecha) la reabre cuando se quiera.
+
+El texto de la bienvenida está en el bloque **CONFIGURACIÓN** de `index.html` (`BIENVENIDA`),
+por si quieres cambiar cómo se explican las técnicas.
+
 ## Tarjeta de hoy y progreso
 
 Tres toques, quince segundos: **ánimo** (5 niveles), **habilidades practicadas** y una
